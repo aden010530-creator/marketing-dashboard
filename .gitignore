@@ -1,0 +1,17 @@
+venv/
+__pycache__/
+*.pyc
+.DS_Store
+*.xlsx
+temp*.xlsx
+.streamlit/secrets.toml
+.env
+.vscode/
+.idea/
+*.exe
+*.db
+data_analyzer/
+agm/
+backend/
+templates/
+*.docx
