@@ -95,15 +95,15 @@ with tab1:
 
             # 일별 차트
             st.subheader("📅 일별 성과 추이")
-            if '노출수' in daily_df.columns and '클릭수' in daily_df.columns:
-                fig = px.line(
-                    daily_df,
-                    y=['노출수', '클릭수'],
-                    title="일별 노출수 및 클릭수",
-                    markers=True,
-                    height=400
-                )
-                st.plotly_chart(fig, use_container_width=True)
+            if len(daily_df) > 0 and '노출수' in daily_df.columns and '클릭수' in daily_df.columns:
+                try:
+                    fig = go.Figure()
+                    fig.add_trace(go.Scatter(x=list(range(len(daily_df))), y=daily_df['노출수'], name='노출수', mode='lines+markers'))
+                    fig.add_trace(go.Scatter(x=list(range(len(daily_df))), y=daily_df['클릭수'], name='클릭수', mode='lines+markers'))
+                    fig.update_layout(title="일별 노출수 및 클릭수", hovermode='x unified', height=400)
+                    st.plotly_chart(fig, use_container_width=True)
+                except Exception as chart_error:
+                    st.error(f"차트 생성 오류: {str(chart_error)}")
         except Exception as e:
             st.error(f"대시보드 생성 오류: {str(e)}")
 
