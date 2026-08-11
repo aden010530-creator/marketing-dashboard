@@ -3,6 +3,7 @@ import pandas as pd
 import numpy as np
 import plotly.express as px
 from pathlib import Path
+import io
 
 st.set_page_config(page_title="마케팅 대시보드", layout="wide")
 
@@ -10,37 +11,62 @@ st.title("📊 마케팅 데이터 분석 대시보드")
 
 # 사이드바 설정
 st.sidebar.header("📁 데이터 관리")
-data_dir = st.sidebar.text_input("데이터 폴더 경로:", value="./")
 
-# 데이터 파일 목록
-data_path = Path(data_dir)
-csv_files = sorted(list(data_path.glob("*.csv")))
-excel_files = sorted(list(data_path.glob("*.xlsx")))
-all_files = csv_files + excel_files
-
-st.sidebar.subheader("📄 사용 가능한 파일")
-
-if not all_files:
-    st.sidebar.warning("데이터 파일을 찾을 수 없습니다.")
-    st.info("👈 올바른 폴더 경로를 입력하세요.")
-    st.stop()
-
-selected_file = st.sidebar.selectbox(
-    "분석할 파일 선택:",
-    [f.name for f in all_files]
+# 탭으로 파일 선택 방식 나누기
+upload_mode = st.sidebar.radio(
+    "파일 선택 방식:",
+    ["📤 파일 업로드", "📂 폴더에서 선택"]
 )
 
-# 선택된 파일 로드
 df = None
-if selected_file:
-    filepath = data_path / selected_file
-    try:
-        if selected_file.endswith('.csv'):
-            df = pd.read_csv(filepath, encoding='utf-8-sig')
-        else:
-            df = pd.read_excel(filepath)
-    except Exception as e:
-        st.error(f"❌ 파일 로드 오류: {str(e)}")
+selected_file = None
+
+if upload_mode == "📤 파일 업로드":
+    st.sidebar.subheader("파일 업로드")
+    uploaded_file = st.sidebar.file_uploader(
+        "CSV 또는 Excel 파일 선택:",
+        type=['csv', 'xlsx', 'xls']
+    )
+
+    if uploaded_file is not None:
+        try:
+            if uploaded_file.name.endswith('.csv'):
+                df = pd.read_csv(uploaded_file, encoding='utf-8-sig')
+            else:
+                df = pd.read_excel(uploaded_file)
+            selected_file = uploaded_file.name
+        except Exception as e:
+            st.error(f"❌ 파일 로드 오류: {str(e)}")
+else:
+    st.sidebar.subheader("📂 폴더에서 선택")
+    data_dir = st.sidebar.text_input("데이터 폴더 경로:", value="./")
+
+    # 데이터 파일 목록
+    data_path = Path(data_dir)
+    csv_files = sorted(list(data_path.glob("*.csv")))
+    excel_files = sorted(list(data_path.glob("*.xlsx")))
+    all_files = csv_files + excel_files
+
+    if not all_files:
+        st.sidebar.warning("데이터 파일을 찾을 수 없습니다.")
+        st.info("👈 올바른 폴더 경로를 입력하거나 파일을 업로드하세요.")
+        st.stop()
+
+    selected_file = st.sidebar.selectbox(
+        "분석할 파일 선택:",
+        [f.name for f in all_files]
+    )
+
+    # 선택된 파일 로드
+    if selected_file:
+        filepath = data_path / selected_file
+        try:
+            if selected_file.endswith('.csv'):
+                df = pd.read_csv(filepath, encoding='utf-8-sig')
+            else:
+                df = pd.read_excel(filepath)
+        except Exception as e:
+            st.error(f"❌ 파일 로드 오류: {str(e)}")
 
 if df is not None:
     # 탭 구성
